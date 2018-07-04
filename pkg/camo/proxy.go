@@ -157,7 +157,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// add an accept header if the client didn't send one
 	if nreq.Header.Get("Accept") == "" {
-		nreq.Header.Add("Accept", "image/*")
+		nreq.Header.Set("Accept", "image/*, video/*")
 	}
 
 	nreq.Header.Add("User-Agent", p.config.ServerName)
@@ -204,12 +204,12 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch resp.StatusCode {
 	case 200:
 		// check content type
-		// if !strings.HasPrefix(resp.Header.Get("Content-Type"), "image/") {
-		// 	mlog.Debugm("Non-Image content-type returned", mlog.Map{"type": u})
-		// 	http.Error(w, "Non-Image content-type returned",
-		// 		http.StatusBadRequest)
-		// 	return
-		// }
+		if !strings.HasPrefix(resp.Header.Get("Content-Type"), "image/") && !strings.HasPrefix(resp.Header.Get("Content-Type"), "video/") {
+			mlog.Debugm("Non-Image content-type returned", mlog.Map{"type": u})
+			http.Error(w, "Non-Image content-type returned",
+				http.StatusBadRequest)
+			return
+		}
 	case 300:
 		http.Error(w, "Multiple choices not supported", http.StatusNotFound)
 		return
